@@ -1,0 +1,69 @@
+
+#Import
+sqoop import --connect jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh --table stocks --columns " " --where "id > 5" --m 1 --target-dir 
+fields-terminated-by '\t' --enclosed-by '"'
+
+hadoop fs -ls stocks
+hadoop fs -cat stocks/part*
+
+#compress
+sqoop import --connect jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh --table stocks --compress --target-dir 
+
+# Incremental Import -Append
+sqoop job --create ImportJob -- import --connect jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh --table stocks --target-dir  --incremental append --check-column id
+--class-name stocks --driver com.mysql.jdbc.Driver
+
+sqoop job -show ImportJob
+
+sqoop job -exec ImportJob
+
+# Incremental Import -lastmodified
+sqoop job --create IncrementeallastImportJob -- import --connect jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh --table stocks --target-dir  
+--incremental lastmodified --check-column updated_time -m 1 --append --driver com.mysql.jdbc.Driver
+
+
+sqoop job -show IncrementeallastImportJob
+
+sqoop job -exec IncrementeallastImportJob
+
+
+hdfs dfs -copyFromLcal .txt /user/labuser/
+
+#export 
+sqoop export --connect  jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh --table emp_sqoop --expot-dir /
+
+#HIVE
+sqoop import --connect jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh --table stocks --target-dir /ihve -m 1
+--hive-import --hive-table sqoop.stocks_sqoop
+
+
+
+sqoop create-hive-table \
+--connect jdbc:mysql://localhost:3306/BigData_DB --username root --password labuserbdh
+--table stocks_sqoop \
+--hive-database sqoopdb
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
